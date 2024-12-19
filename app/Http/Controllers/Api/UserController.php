@@ -8,16 +8,45 @@ use App\Mail\UserAdded;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::all();
-        return response()->json($users);
+        // validation
+        $request->validate([
+            'search' => 'string',
+            'page' => 'integer',
+            'sortBy' => 'nullable|in:name,email,created_at'
+        ]);
+
+        $search = $request->get('search');
+        $page = $request->get('page') ?? 1 ;
+        $sortBy = $request->get('sortBy') ?? 'created_at';
+        $perpage = 2;
+        $offset = $perpage * ($page - 1);
+
+        $query = User::query();
+        $query->select('id','email','name','created_at')
+            ->selectRaw('(select count(1) from orders where orders.user_id = users.id) as orders_count')
+            ->orderBy($sortBy);
+
+        if ($search) {
+            $query->whereAny([
+                'name',
+                'email'
+            ], 'like', '%'.$search.'%');
+        }
+            
+        $result = $query->offset($offset)->limit($perpage)->get();
+        return response()->json([
+            'page' => $page,
+            'users' => $result
+        ]);
     }
 
     /**
@@ -42,7 +71,12 @@ class UserController extends Controller
             Mail::to($recipient)->send(new UserAdded($user));   
         }
 
-        return response()->json($user,201);
+        return response()->json([
+            'id' => $user->id,
+            'email' => $user->email,
+            'name' => $user->name,
+            'created_at' => $user->created_at
+        ],201);
     }
 
     /**
