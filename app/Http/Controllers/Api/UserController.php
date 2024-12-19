@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Mail\UserAdded;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -35,6 +37,10 @@ class UserController extends Controller
         $user->password = Hash::make($request->input('password'));
         $user->name = $request->input('name');
         $user->save();
+
+        foreach(['admin@mailinator.com',$request->input('email')] as $recipient) {
+            Mail::to($recipient)->send(new UserAdded($user));   
+        }
 
         return response()->json($user,201);
     }
