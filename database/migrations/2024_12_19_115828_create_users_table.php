@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->string('name');
+            $table->boolean('active')->default(true);
             $table->timestamp('created_at');
         });
     }
