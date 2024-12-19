@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('orders', function (Blueprint $table) {
             $table->id()->primary();
             $table->foreignId('user_id');
-            $table->timestamp('created_at');
+            $table->timestamps();
         });
     }
 

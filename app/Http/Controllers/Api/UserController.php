@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -23,10 +24,19 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'email' => 'bail|required|string|email|unique',
+            'email' => 'bail|required|string|email|unique:users',
             'password' => 'bail|required|string|min:8',
             'name' => 'bail|required|string|min:3|max:50'
-        ])
+        ],['email.unique' => 'Email has been registered']);
+
+        $user = new User();
+
+        $user->email = $request->input('email');
+        $user->password = Hash::make($request->input('password'));
+        $user->name = $request->input('name');
+        $user->save();
+
+        return response()->json($user,201);
     }
 
     /**
