@@ -22,7 +22,11 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'email' => 'bail|required|string|email|unique',
+            'password' => 'bail|required|string|min:8',
+            'name' => 'bail|required|string|min:3|max:50'
+        ])
     }
 
     /**
